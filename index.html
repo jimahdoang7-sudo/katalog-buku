@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Digital Library</title>
+    <title>My E-Book Library</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Efek biar modal reader-nya berasa kayak aplikasi e-book */
+        .book-reader-container {
+            background: radial-gradient(circle, #334155 0%, #0f172a 100%);
+        }
+        iframe {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
@@ -24,16 +34,8 @@
                 category: "Self Development",
                 review: "Belajar stoikisme biar nggak gampang stres.",
                 image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400",
-                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" // Ganti pake link PDF lo
-            },
-            {
-                id: 1,
-                title: "Kisah Santri Kubah",
-                author: "bY.zK",
-                category: "Self Development",
-                review: "Kalo Punya NYali coba masuk Ponpes.",
-                image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400",
-                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" // Ganti pake link PDF lo
+                // Gunakan Google Drive Viewer biar ada fitur flip/preview yang enak
+                bookUrl: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf&embedded=true"
             },
             {
                 id: 2,
@@ -42,73 +44,83 @@
                 category: "Productivity",
                 review: "Cara ngebangun habit kecil jadi luar biasa.",
                 image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=400",
-                pdfUrl: "" // Kosongin kalo cuma mau pajangan
+                bookUrl: "" 
             }
         ];
 
         const BookBlog = () => {
             const [searchTerm, setSearchTerm] = useState("");
-            const [activePdf, setActivePdf] = useState(null);
+            const [activeBook, setActiveBook] = useState(null);
 
             const filteredBooks = BOOK_DATA.filter(book => 
                 book.title.toLowerCase().includes(searchTerm.toLowerCase())
             );
 
             return (
-                <div className="min-h-screen bg-slate-900 text-white font-sans">
-                    {/* HEADER */}
-                    <header className="py-10 px-4 text-center">
-                        <h1 className="text-4xl font-bold text-indigo-400 mb-2">E-Library Gue 📖</h1>
-                        <p className="text-slate-400">Pilih buku dan langsung baca di sini, Bro!</p>
-                        <input 
-                            type="text" 
-                            placeholder="Cari buku..." 
-                            className="mt-6 w-full max-w-md px-6 py-3 rounded-full bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+                    {/* NAV */}
+                    <nav className="bg-white border-b py-4 px-6 flex justify-between items-center sticky top-0 z-10">
+                        <span className="text-xl font-black text-indigo-600 tracking-tighter italic">BOOKLATE.</span>
+                        <div className="relative w-1/3">
+                            <input 
+                                type="text" 
+                                placeholder="Cari e-book..." 
+                                className="w-full pl-10 pr-4 py-2 bg-slate-100 rounded-full border-none text-sm focus:ring-2 focus:ring-indigo-400"
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <i className="fa-solid fa-magnifying-glass absolute left-4 top-2.5 text-slate-400 text-xs"></i>
+                        </div>
+                    </nav>
+
+                    {/* HERO */}
+                    <header className="max-w-6xl mx-auto px-4 py-12 text-center">
+                        <h2 className="text-5xl font-extrabold mb-4 tracking-tight">Perpustakaan Digital Gue</h2>
+                        <p className="text-slate-500 text-lg">Baca koleksi e-book pilihan langsung dari browser lo.</p>
                     </header>
 
-                    {/* GRID BUKU */}
+                    {/* LIST */}
                     <main className="max-w-6xl mx-auto px-4 pb-20">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
                             {filteredBooks.map((book) => (
-                                <div key={book.id} className="bg-slate-800 rounded-xl overflow-hidden hover:ring-2 hover:ring-indigo-500 transition-all group">
-                                    <div className="aspect-[3/4] relative">
+                                <div key={book.id} className="group cursor-pointer" onClick={() => book.bookUrl && setActiveBook(book)}>
+                                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-md group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
                                         <img src={book.image} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                            {book.pdfUrl ? (
-                                                <button 
-                                                    onClick={() => setActivePdf(book)}
-                                                    className="bg-indigo-600 px-4 py-2 rounded-lg font-bold"
-                                                >
-                                                    Baca Sekarang
-                                                </button>
-                                            ) : (
-                                                <span className="text-sm italic text-slate-300 text-center px-2">Isi belum tersedia</span>
-                                            )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                            <button className="bg-white text-black w-full py-2 rounded font-bold text-xs uppercase tracking-widest">
+                                                Baca Sekarang
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="p-4">
-                                        <h3 className="font-bold truncate">{book.title}</h3>
-                                        <p className="text-xs text-slate-500">{book.author}</p>
+                                    <div className="mt-4 text-center">
+                                        <h3 className="font-bold text-sm line-clamp-1">{book.title}</h3>
+                                        <p className="text-xs text-slate-400 mt-1">{book.author}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </main>
 
-                    {/* MODAL READER (Google Books Style) */}
-                    {activePdf && (
-                        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-                            <div className="p-4 bg-slate-800 flex justify-between items-center">
-                                <h2 className="font-bold uppercase tracking-widest text-indigo-400">{activePdf.title}</h2>
-                                <button onClick={() => setActivePdf(null)} className="text-2xl">&times; Tutup</button>
+                    {/* E-BOOK READER MODAL */}
+                    {activeBook && (
+                        <div className="fixed inset-0 z-50 book-reader-container flex flex-col">
+                            <div className="p-4 flex justify-between items-center border-b border-slate-700 text-white">
+                                <div className="flex items-center gap-4">
+                                    <button onClick={() => setActiveBook(null)} className="hover:text-indigo-400 transition-colors">
+                                        <i className="fa-solid fa-arrow-left mr-2"></i> Kembali
+                                    </button>
+                                    <span className="h-4 w-[1px] bg-slate-600"></span>
+                                    <h2 className="font-medium text-sm text-slate-300 italic">{activeBook.title}</h2>
+                                </div>
+                                <div className="flex gap-4">
+                                    <i className="fa-solid fa-expand cursor-pointer hover:text-indigo-400"></i>
+                                    <i className="fa-solid fa-share-nodes cursor-pointer hover:text-indigo-400"></i>
+                                </div>
                             </div>
-                            <div className="flex-grow">
+                            <div className="flex-grow flex justify-center items-center p-4 md:p-10">
                                 <iframe 
-                                    src={`${activePdf.pdfUrl}#toolbar=0`} 
-                                    className="w-full h-full border-none"
-                                    title="PDF Viewer"
+                                    src={activeBook.bookUrl} 
+                                    className="w-full max-w-5xl h-full border-none bg-white"
+                                    allow="autoplay"
                                 ></iframe>
                             </div>
                         </div>
@@ -122,4 +134,3 @@
     </script>
 </body>
 </html>
-
