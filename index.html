@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Buku Gue</title>
+    <title>My Digital Library</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -16,120 +16,94 @@
     <script type="text/babel">
         const { useState } = React;
 
-        // TINGGAL EDIT DATA DI SINI BRO
-        const NOMOR_WA = "6281385149325"; // Ganti pakai nomor lo (awali dengan 62)
         const BOOK_DATA = [
             {
                 id: 1,
                 title: "Filosofi Teras",
                 author: "Henry Manampiring",
                 category: "Self Development",
-                status: "Tersedia",
-                review: "Buku ini ngebantu banget buat lo yang sering overthinking.",
-                image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400"
+                review: "Belajar stoikisme biar nggak gampang stres.",
+                image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" // Ganti pake link PDF lo
             },
             {
                 id: 2,
                 title: "Atomic Habits",
                 author: "James Clear",
                 category: "Productivity",
-                status: "Dipinjam",
-                review: "Ngerubah kebiasaan kecil itu efeknya gede banget.",
-                image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=400"
+                review: "Cara ngebangun habit kecil jadi luar biasa.",
+                image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=400",
+                pdfUrl: "" // Kosongin kalo cuma mau pajangan
             }
         ];
 
         const BookBlog = () => {
             const [searchTerm, setSearchTerm] = useState("");
+            const [activePdf, setActivePdf] = useState(null);
 
             const filteredBooks = BOOK_DATA.filter(book => 
-                book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                book.author.toLowerCase().includes(searchTerm.toLowerCase())
+                book.title.toLowerCase().includes(searchTerm.toLowerCase())
             );
 
-            const handlePinjam = (title) => {
-                const pesan = encodeURIComponent(`Bro, gue liat di blog lo, gue mau pinjem buku "${title}" dong! Masih ada?`);
-                window.open(`https://wa.me/${NOMOR_WA}?text=${pesan}`, '_blank');
-            };
-
             return (
-                <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-                    <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
-                        <div className="max-w-5xl mx-auto px-4 py-8 text-center">
-                            <h1 className="text-4xl font-extrabold text-indigo-700 tracking-tight">Katalog Buku Gue 📚</h1>
-                            <p className="text-slate-500 mt-2 text-lg">Cek koleksi gue, kalau naksir langsung klik pinjem aja!</p>
-                            
-                            <div className="mt-8 max-w-md mx-auto relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                                    <i className="fa-solid fa-magnifying-glass"></i>
-                                </span>
-                                <input 
-                                    type="text" 
-                                    placeholder="Cari judul buku atau penulis..." 
-                                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50 transition-all"
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </div>
+                <div className="min-h-screen bg-slate-900 text-white font-sans">
+                    {/* HEADER */}
+                    <header className="py-10 px-4 text-center">
+                        <h1 className="text-4xl font-bold text-indigo-400 mb-2">E-Library Gue 📖</h1>
+                        <p className="text-slate-400">Pilih buku dan langsung baca di sini, Bro!</p>
+                        <input 
+                            type="text" 
+                            placeholder="Cari buku..." 
+                            className="mt-6 w-full max-w-md px-6 py-3 rounded-full bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </header>
 
-                    <main className="max-w-6xl mx-auto px-4 py-12">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {filteredBooks.length > 0 ? (
-                                filteredBooks.map((book) => (
-                                    <div key={book.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 flex flex-col">
-                                        <div className="h-64 overflow-hidden relative group">
-                                            <img 
-                                                src={book.image} 
-                                                alt={book.title} 
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
-                                            <div className="absolute top-3 right-3">
-                                                <span className={`text-[11px] font-bold px-3 py-1 rounded-full shadow-sm ${
-                                                    book.status === 'Tersedia' ? 'bg-green-500 text-white' : 'bg-rose-500 text-white'
-                                                }`}>
-                                                    {book.status}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="p-5 flex-grow flex flex-col">
-                                            <span className="text-[10px] uppercase font-bold text-indigo-500 mb-1">{book.category}</span>
-                                            <h2 className="font-bold text-xl leading-tight mb-1 text-slate-800">{book.title}</h2>
-                                            <p className="text-sm text-slate-500 mb-4 font-medium italic">by {book.author}</p>
-                                            
-                                            <p className="text-sm text-slate-600 line-clamp-3 mb-6 flex-grow">"{book.review}"</p>
-                                            
-                                            <button 
-                                                onClick={() => handlePinjam(book.title)}
-                                                disabled={book.status !== 'Tersedia'}
-                                                className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                                                    book.status === 'Tersedia' 
-                                                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95' 
-                                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                                }`}
-                                            >
-                                                <i className="fa-brands fa-whatsapp text-lg"></i>
-                                                {book.status === 'Tersedia' ? 'Pinjem Buku' : 'Lagi Keluar'}
-                                            </button>
+                    {/* GRID BUKU */}
+                    <main className="max-w-6xl mx-auto px-4 pb-20">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            {filteredBooks.map((book) => (
+                                <div key={book.id} className="bg-slate-800 rounded-xl overflow-hidden hover:ring-2 hover:ring-indigo-500 transition-all group">
+                                    <div className="aspect-[3/4] relative">
+                                        <img src={book.image} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                            {book.pdfUrl ? (
+                                                <button 
+                                                    onClick={() => setActivePdf(book)}
+                                                    className="bg-indigo-600 px-4 py-2 rounded-lg font-bold"
+                                                >
+                                                    Baca Sekarang
+                                                </button>
+                                            ) : (
+                                                <span className="text-sm italic text-slate-300 text-center px-2">Isi belum tersedia</span>
+                                            )}
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="col-span-full text-center py-20">
-                                    <i className="fa-solid fa-book-open text-5xl text-slate-200 mb-4"></i>
-                                    <p className="text-slate-400 text-lg">Buku yang lo cari nggak ada di rak gue, Bro.</p>
+                                    <div className="p-4">
+                                        <h3 className="font-bold truncate">{book.title}</h3>
+                                        <p className="text-xs text-slate-500">{book.author}</p>
+                                    </div>
                                 </div>
-                            )}
+                            ))}
                         </div>
                     </main>
 
-                    <footer className="bg-white border-t py-12 mt-10">
-                        <div className="text-center">
-                            <p className="text-slate-400 text-sm">Made with ❤️ for my buddies.</p>
-                            <p className="text-slate-300 text-[10px] mt-2 italic">Automated WhatsApp Integration v1.0</p>
+                    {/* MODAL READER (Google Books Style) */}
+                    {activePdf && (
+                        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+                            <div className="p-4 bg-slate-800 flex justify-between items-center">
+                                <h2 className="font-bold uppercase tracking-widest text-indigo-400">{activePdf.title}</h2>
+                                <button onClick={() => setActivePdf(null)} className="text-2xl">&times; Tutup</button>
+                            </div>
+                            <div className="flex-grow">
+                                <iframe 
+                                    src={`${activePdf.pdfUrl}#toolbar=0`} 
+                                    className="w-full h-full border-none"
+                                    title="PDF Viewer"
+                                ></iframe>
+                            </div>
                         </div>
-                    </footer>
+                    )}
                 </div>
             );
         };
@@ -139,4 +113,3 @@
     </script>
 </body>
 </html>
-
