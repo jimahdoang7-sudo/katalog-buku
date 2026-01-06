@@ -13,8 +13,9 @@
     <style>
         .cursor-next { cursor: url('https://cdn-icons-png.flaticon.com/32/271/271228.png'), auto; }
         .cursor-prev { cursor: url('https://cdn-icons-png.flaticon.com/32/271/271220.png'), auto; }
-        /* Style untuk buku yang tidak tersedia */
         .book-unavailable { filter: grayscale(1); opacity: 0.6; cursor: not-allowed !important; }
+        .loader { border-top-color: #6366f1; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-[#0b0f1a] text-white font-sans">
@@ -26,7 +27,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
         const NOMOR_WA = "+6281385149325"; 
-        const LIMIT_HALAMAN = 10; 
+        const LIMIT_HALAMAN = 20; 
 
         const BOOK_DATA = [
             {
@@ -36,7 +37,7 @@
                 price: "Rp 50.000",
                 image: "sampul 1.jpg", 
                 pdfUrl: "Hakikat Kesederhanaan KH. M. Ma'shum Yusuf.pdf",
-                available: False // Status: Sedang Tidak Tersedia
+                available: true
             },
             {
                 id: 2,
@@ -44,8 +45,8 @@
                 author: "Internal Team",
                 price: "Rp 50.000",
                 image: "sampul 2.jpg", 
-                pdfUrl: "MISKIN ITU ASYIK.pdf",
-                available: True // Status: Tersedia
+                pdfUrl: "MISKIN ITU ASYIK.pdf", // PASTIKAN NAMA FILE INI SAMA DENGAN DI FOLDER
+                available: true 
             }
         ];
 
@@ -53,21 +54,29 @@
             const canvasRef = useRef(null);
             const [pdf, setPdf] = useState(null);
             const [currentPage, setCurrentPage] = useState(1);
-            const [numPages, setNumPages] = useState(0);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
 
             useEffect(() => {
+                setLoading(true);
                 const loadingTask = pdfjsLib.getDocument(book.pdfUrl);
                 loadingTask.promise.then((loadedPdf) => {
                     setPdf(loadedPdf);
-                    setNumPages(loadedPdf.numPages);
                     renderPage(1, loadedPdf);
+                    setLoading(false);
+                }).catch(err => {
+                    console.error(err);
+                    setError("File PDF tidak ditemukan atau gagal dimuat.");
+                    setLoading(false);
                 });
             }, [book.pdfUrl]);
 
             const renderPage = (pageNum, pdfDoc = pdf) => {
+                if (!pdfDoc) return;
                 pdfDoc.getPage(pageNum).then((page) => {
                     const viewport = page.getViewport({ scale: 1.5 });
                     const canvas = canvasRef.current;
+                    if (!canvas) return;
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
@@ -94,34 +103,50 @@
                         <button onClick={onClose} className="text-white font-bold text-xs px-4 py-2 bg-slate-800 rounded-lg hover:bg-rose-600 transition-all uppercase">
                             &larr; Keluar
                         </button>
-                        <div className="text-[10px] font-black tracking-widest uppercase">
-                            Preview {currentPage} / {LIMIT_HALAMAN}
+                        <div className="text-[10px] font-black tracking-widest uppercase text-indigo-400">
+                            {loading ? "MEMUAT..." : `Preview ${currentPage} / ${LIMIT_HALAMAN}`}
                         </div>
-                        <button onClick={handleBeli} className="bg-green-600 hover:bg-green-500 text-white px-5 py-2 rounded-lg text-xs font-black animate-pulse">
+                        <button onClick={handleBeli} className="bg-green-600 hover:bg-green-500 text-white px-5 py-2 rounded-lg text-xs font-black">
                              BELI FULL
                         </button>
                     </div>
 
-                    <div className="flex-grow overflow-auto p-4 flex flex-col items-center justify-start">
-                        <div className="relative shadow-2xl rounded bg-white group mt-4">
-                            <canvas ref={canvasRef} className="max-w-full h-auto"></canvas>
-                            
-                            <div 
-                                onClick={() => changePage(-1)}
-                                className={`absolute inset-y-0 left-0 w-1/4 z-10 cursor-prev flex items-center justify-start p-4 transition-opacity ${currentPage > 1 ? 'opacity-0 hover:opacity-100 bg-gradient-to-r from-black/20 to-transparent' : 'hidden'}`}
-                            >
-                                <i className="fa-solid fa-chevron-left text-3xl text-white shadow-lg"></i>
+                    <div className="flex-grow overflow-auto p-4 flex flex-col items-center justify-start relative">
+                        {loading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-20">
+                                <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-800 h-12 w-12 mb-4"></div>
+                                <p className="text-xs font-bold tracking-widest text-slate-500">MENGAMBIL HALAMAN...</p>
                             </div>
+                        )}
 
-                            <div 
-                                onClick={() => changePage(1)}
-                                className={`absolute inset-y-0 right-0 w-1/4 z-10 cursor-next flex items-center justify-end p-4 transition-opacity ${currentPage < LIMIT_HALAMAN ? 'opacity-0 hover:opacity-100 bg-gradient-to-l from-black/20 to-transparent' : 'hidden'}`}
-                            >
-                                <i className="fa-solid fa-chevron-right text-3xl text-white shadow-lg"></i>
+                        {error ? (
+                            <div className="mt-20 text-center p-8 bg-rose-950/20 border border-rose-500 rounded-3xl max-w-sm">
+                                <i className="fa-solid fa-circle-exclamation text-rose-500 text-4xl mb-4"></i>
+                                <h3 className="font-black uppercase mb-2">Waduh, Error Bro!</h3>
+                                <p className="text-xs text-slate-400 leading-relaxed">{error}</p>
+                                <button onClick={onClose} className="mt-6 text-[10px] font-black uppercase underline decoration-rose-500 tracking-widest">Kembali ke Katalog</button>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="relative shadow-2xl rounded bg-white group mt-4">
+                                <canvas ref={canvasRef} className="max-w-full h-auto"></canvas>
+                                
+                                <div 
+                                    onClick={() => !loading && changePage(-1)}
+                                    className={`absolute inset-y-0 left-0 w-1/4 z-10 cursor-prev flex items-center justify-start p-4 transition-opacity ${currentPage > 1 ? 'opacity-0 hover:opacity-100 bg-gradient-to-r from-black/20 to-transparent' : 'hidden'}`}
+                                >
+                                    <i className="fa-solid fa-chevron-left text-3xl text-white shadow-lg"></i>
+                                </div>
+
+                                <div 
+                                    onClick={() => !loading && changePage(1)}
+                                    className={`absolute inset-y-0 right-0 w-1/4 z-10 cursor-next flex items-center justify-end p-4 transition-opacity ${currentPage < LIMIT_HALAMAN ? 'opacity-0 hover:opacity-100 bg-gradient-to-l from-black/20 to-transparent' : 'hidden'}`}
+                                >
+                                    <i className="fa-solid fa-chevron-right text-3xl text-white shadow-lg"></i>
+                                </div>
+                            </div>
+                        )}
                         
-                        {currentPage === LIMIT_HALAMAN && (
+                        {!loading && !error && currentPage === LIMIT_HALAMAN && (
                             <div className="mt-8 p-8 bg-indigo-900/40 rounded-3xl border border-indigo-500 text-center max-w-md mb-20">
                                 <h3 className="text-xl font-black mb-2 uppercase">Lanjut Baca?</h3>
                                 <p className="text-sm text-slate-300 mb-6">Beli versi full buat dapet akses selamanya!</p>
