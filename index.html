@@ -11,9 +11,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Cursor kustom biar user tau bisa diklik */
         .cursor-next { cursor: url('https://cdn-icons-png.flaticon.com/32/271/271228.png'), auto; }
         .cursor-prev { cursor: url('https://cdn-icons-png.flaticon.com/32/271/271220.png'), auto; }
+        /* Style untuk buku yang tidak tersedia */
+        .book-unavailable { filter: grayscale(1); opacity: 0.6; cursor: not-allowed !important; }
     </style>
 </head>
 <body class="bg-[#0b0f1a] text-white font-sans">
@@ -25,7 +26,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
         const NOMOR_WA = "+6281385149325"; 
-        const LIMIT_HALAMAN = 20; 
+        const LIMIT_HALAMAN = 10; 
 
         const BOOK_DATA = [
             {
@@ -34,7 +35,8 @@
                 author: "Internal Team",
                 price: "Rp 50.000",
                 image: "sampul 1.jpg", 
-                pdfUrl: "Hakikat Kesederhanaan KH. M. Ma'shum Yusuf.pdf" 
+                pdfUrl: "Hakikat Kesederhanaan KH. M. Ma'shum Yusuf.pdf",
+                available: False // Status: Sedang Tidak Tersedia
             },
             {
                 id: 2,
@@ -42,7 +44,8 @@
                 author: "Internal Team",
                 price: "Rp 50.000",
                 image: "sampul 2.jpg", 
-                pdfUrl: "MISKIN ITU ASYIK.pdf" 
+                pdfUrl: "MISKIN ITU ASYIK.pdf",
+                available: True // Status: Tersedia
             }
         ];
 
@@ -100,11 +103,9 @@
                     </div>
 
                     <div className="flex-grow overflow-auto p-4 flex flex-col items-center justify-start">
-                        {/* CONTAINER BUKU DENGAN AREA KLIK */}
                         <div className="relative shadow-2xl rounded bg-white group mt-4">
                             <canvas ref={canvasRef} className="max-w-full h-auto"></canvas>
                             
-                            {/* Area Klik Kiri (Prev) */}
                             <div 
                                 onClick={() => changePage(-1)}
                                 className={`absolute inset-y-0 left-0 w-1/4 z-10 cursor-prev flex items-center justify-start p-4 transition-opacity ${currentPage > 1 ? 'opacity-0 hover:opacity-100 bg-gradient-to-r from-black/20 to-transparent' : 'hidden'}`}
@@ -112,7 +113,6 @@
                                 <i className="fa-solid fa-chevron-left text-3xl text-white shadow-lg"></i>
                             </div>
 
-                            {/* Area Klik Kanan (Next) */}
                             <div 
                                 onClick={() => changePage(1)}
                                 className={`absolute inset-y-0 right-0 w-1/4 z-10 cursor-next flex items-center justify-end p-4 transition-opacity ${currentPage < LIMIT_HALAMAN ? 'opacity-0 hover:opacity-100 bg-gradient-to-l from-black/20 to-transparent' : 'hidden'}`}
@@ -147,20 +147,34 @@
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                         {BOOK_DATA.map(book => (
-                            <div key={book.id} className="group bg-slate-800/50 p-4 rounded-3xl border border-white/5 hover:border-indigo-500 transition-all flex flex-col cursor-pointer" onClick={() => setSelectedBook(book)}>
+                            <div 
+                                key={book.id} 
+                                className={`group bg-slate-800/50 p-4 rounded-3xl border border-white/5 transition-all flex flex-col ${book.available ? 'hover:border-indigo-500 cursor-pointer' : 'book-unavailable'}`} 
+                                onClick={() => book.available && setSelectedBook(book)}
+                            >
                                 <div className="aspect-[3/4] overflow-hidden rounded-2xl shadow-xl relative">
                                     <img src={book.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                                    <div className="absolute top-3 right-3 bg-indigo-600 text-[10px] font-black px-3 py-1 rounded-full shadow-lg">
-                                        {book.price}
-                                    </div>
+                                    {book.available && (
+                                        <div className="absolute top-3 right-3 bg-indigo-600 text-[10px] font-black px-3 py-1 rounded-full shadow-lg">
+                                            {book.price}
+                                        </div>
+                                    )}
+                                    {!book.available && (
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                            <span className="bg-rose-600 text-white text-[10px] font-black px-4 py-2 rounded-lg rotate-12 border-2 border-white shadow-2xl">SOLDOUT</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="mt-4 flex-grow">
                                     <h2 className="font-bold text-lg text-slate-200 line-clamp-1">{book.title}</h2>
                                     <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1 italic">By {book.author}</p>
                                 </div>
                                 <div className="mt-6">
-                                    <button className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-all">
-                                        Lihat Preview
+                                    <button 
+                                        disabled={!book.available}
+                                        className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${book.available ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-slate-700 text-slate-500'}`}
+                                    >
+                                        {book.available ? 'Lihat Preview' : 'Tidak Tersedia'}
                                     </button>
                                 </div>
                             </div>
@@ -182,11 +196,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
