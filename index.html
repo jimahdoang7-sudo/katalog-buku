@@ -27,7 +27,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
         const NOMOR_WA = "+6281385149325"; 
-        const LIMIT_HALAMAN = 20; 
+        const LIMIT_HALAMAN = 10; 
 
         const BOOK_DATA = [
             {
@@ -93,7 +93,7 @@
             };
 
             const handleBeli = () => {
-                const pesan = encodeURIComponent(`Halo Bro, gue mau beli buku "${book.title}" seharga ${book.price}.`);
+                const pesan = encodeURIComponent(`Halo Bapak/Ibu, saya mau beli buku "${book.title}" seharga ${book.price}.`);
                 window.open(`https://wa.me/${NOMOR_WA}?text=${pesan}`, '_blank');
             };
 
@@ -221,6 +221,7 @@
     </script>
 </body>
 </html>
+
 
 
 
